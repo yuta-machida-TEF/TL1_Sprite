@@ -79,11 +79,12 @@ class MYADDON_OT_create_ico_sphere(bpy.types.Operator):
 
     #メニューを実行したときに呼ばれるコールバック関数
     def execute(self,context):
+
         bpy.ops.mesh.primitive_ico_sphere_add()
         print("ICO球を生成しました。")
-
         #オペレータの命令終了を通知
         return  {'FINISHED'}
+
 
 #オペレータ　シーン出力
 class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelper):
@@ -91,7 +92,15 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
     bl_label = "シーン出力"
     bl_description = "シーン情報をExportします"
     #出力するファイルの拡張子
-    filename_ext = ".scene"
+    filename_ext = ".scene"    
+
+    def write_and_print(self,file,str):
+        print(str)
+
+        file.write(str)
+        file.write('\n')
+
+
 
     def export(self):
         """ファイルに出力"""
@@ -105,55 +114,44 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
             #ファイルに文字列を書き込む
             file.write("SCENE")
 
-            #ファイルに出力
-            self.export()
-        
-        for object in bpy.context.scene.objects:
-            
-            #親オブジェクトがあるものはスキップ(代わりに親から呼び出すから)
-            if(object.parent):
-               continue
-           
-            #シーン直下のオブジェクトをルートノード(深さ0)とし、再帰関数で定義
-            self.parse_scene_recursive(file, object, 0)
-              
-    
+            #シーン内の全オブジェクトについて
+            for object in bpy.context.scene.objects:
 
-    def write_and_print(self,file,str):
-        print(str)
+                #親オブジェクトがあるものはスキップ(代わりに親から呼び出すから)
+                if(object.parent):
+                   continue
 
-        file.write(str)
-        file.write('\n')
+                #シーン直下のオブジェクトをルートノード(深さ0)とし、再帰関数で定義
+                self.parse_scene_recursive(file, object, 0)
 
+                print(object.type + " - " + object.name)
+                #ローカルトランスフォーム行列から平行移動、回転、スケーリングを抽出
+                #型は Vector, Quaternion, Vector
+                trans, rot, scale = object.matrix_local.decompose()
+                #回転を Quternion から Euler (3軸での回転角) に変換
+                rot = rot.to_euler()
+                #ラジアンから度数法に変換
+                rot.x = math.degrees(rot.x)
+                rot.y = math.degrees(rot.y)
+                rot.z = math.degrees(rot.z)
+                #トランスフォーム情報を表示
+                print("Trans(%f,%f,%f)" % (trans.x,trans.y,trans.z))
+                print("Rot(%f,%f,%f)" % (rot.x , rot.y , rot.z))
+                print("Scale(%f,%f,%f)" % (scale.x, scale.y, scale.z))
+                #親オブジェクトの名前を表示
+                if object.parent:
+                 print("Parent:" + object.parent.name)
+                 print()
 
     def execute(self,context):
 
         print("シーン情報をExportします")      
 
-        #シーン内の全オブジェクトについて
-        for object in bpy.context.scene.objects:
-
-            print(object.type + " - " + object.name)
-            #ローカルトランスフォーム行列から平行移動、回転、スケーリングを抽出
-            #型は Vector, Quaternion, Vector
-            trans, rot, scale = object.matrix_local.decompose()
-            #回転を Quternion から Euler (3軸での回転角) に変換
-            rot = rot.to_euler()
-            #ラジアンから度数法に変換
-            rot.x = math.degrees(rot.x)
-            rot.y = math.degrees(rot.y)
-            rot.z = math.degrees(rot.z)
-            #トランスフォーム情報を表示
-            print("Trans(%f,%f,%f)" % (trans.x,trans.y,trans.z))
-            print("Rot(%f,%f,%f)" % (rot.x , rot.y , rot.z))
-            print("Scale(%f,%f,%f)" % (scale.x, scale.y, scale.z))
-            #親オブジェクトの名前を表示
-            if object.parent:
-                print("Parent:" + object.parent.name)
-            print()
-
-        print("シーン情報をExportしました")
+        #ファイルに出力
+        self.export()
+      
         self.report({'INFO'},"シーン情報をExportしました")
+        print("シーン情報をExportしました")
 
         #オペレータの命令終了を通知
         return  {'FINISHED'}
@@ -167,7 +165,7 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
             indent += "\t"
 
         #オブジェクト名書き込み
-        self.write_and_print(file, object.type + " - " + object.name)
+        self.write_and_print(file, indent + object.type + " - " + object.name)
         trans, rot, scale = object.matrix_local.decompose()
         #回転を Quternion から Euler (3軸での回転角) に変換
         rot = rot.to_euler()
@@ -185,6 +183,7 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
         #子ノートへ進む(深さが1上げる)
         for child in object.children:
             self.parse_scene_recursive(file,child,level + 1)
+
 
 #Blenderに登録するクラスリスト
 classes = (
