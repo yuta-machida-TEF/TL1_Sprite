@@ -143,6 +143,7 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
                  print("Parent:" + object.parent.name)
                  print()
 
+
     def execute(self,context):
 
         print("シーン情報をExportします")      
