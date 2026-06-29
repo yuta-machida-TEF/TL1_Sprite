@@ -138,10 +138,10 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
                 print("Trans(%f,%f,%f)" % (trans.x,trans.y,trans.z))
                 print("Rot(%f,%f,%f)" % (rot.x , rot.y , rot.z))
                 print("Scale(%f,%f,%f)" % (scale.x, scale.y, scale.z))
-                #親オブジェクトの名前を表示
-                if object.parent:
-                 print("Parent:" + object.parent.name)
-                 print()
+            #親オブジェクトの名前を表示
+            if object.parent:
+                print("Parent:" + object.parent.name)
+                print()
 
 
     def execute(self,context):
@@ -176,9 +176,9 @@ class MYADDON_OT_export_scene(bpy.types.Operator,bpy_extras.io_utils.ExportHelpe
         rot.z = math.degrees(rot.z)
 
         #トランスフォーム情報を表示
-        self.write_and_print(file,indent + "T %f %f %f" % (trans.x,trans.y,trans.z))
-        self.write_and_print(file,indent + "R %f %f %f" % (rot.x,rot.y,rot.z ))
-        self.write_and_print(file,indent + "S %f %f %f" % (scale.x,scale.y,scale.z))
+        self.write_and_print(file, indent + "T %f %f %f" % (trans.x, trans.y, trans.z) )
+        self.write_and_print(file, indent + "R %f %f %f" % (rot.x, rot.y, rot.z ) )
+        self.write_and_print(file, indent + "S %f %f %f" % (scale.x, scale.y, scale.z) )
         self.write_and_print(file,'')
         #カスタマムプロパティ'file_name'
         if  "file_name" in object:
